@@ -1,0 +1,18 @@
+﻿@page "/"
+@using Tarea9_10.Data
+@inject UsuarioServices usuario_service
+
+<!--Dar el bienvenido al usuario con "Hola +nombre del usuario"-->
+<p>
+    <h1>Hola @usuario_service._usuario.Nombre_Usuario!!</h1>
+</p>
+<p>
+    <h3>Bienvenido a la página para gestionar integrantes de una iglesia.</h3>
+</p>
+<p>
+    <div class="text-center">
+        <img src="/Images/logotipo-de-la-iglesia-cruz-y-manos-símbolo-cristiano-ilustración-del-vector-aislada-en-el-fondo-blanco-142145621.jpg" class="rounded" height="500" width="400">
+    </div>
+</p>
+
+

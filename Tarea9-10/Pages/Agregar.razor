@@ -1,0 +1,933 @@
+﻿@page "/agregar"
+@using Tarea9_10.Data
+@using BlazorInputFile
+@using System.IO
+@inject PersonaServices persona_service
+@inject DatosEclesiasticosServices datosEclesiasticos_service
+@inject UsuarioServices usuario_service
+@inject HttpClient Http
+
+
+<!--presentar dependiendo el booleano usuario_service.state cual se validó en el login.-->
+@if (usuario_service.state)
+{
+    <!--presentar dependiendo el booleano usuario_service.permiso cual se validó en el login.-->
+    @if (usuario_service.permiso)
+    {
+        <!--un formulario para llamar al metodo Ejecutar y con input que bindea el campo correspondiente-->
+        <form @onsubmit="Ejecutar">
+
+            <!---------------------Datos Personal--------------------------->
+            <div>
+                <center><b class="h3"><u>DATOS PERSONALES</u></b></center>
+                <p>
+                    <b>Foto</b>
+                    <br />
+                    @if (persona_service._persona.Foto != null)
+                    {
+                        <br />
+                        <!--Cambia el formato byte a jpg (primero llama al metodo getImage, retorna un byte,
+                            convierte el byte a string(pero aun no se puede convertir a jpg), convertir a string de nevo y luego convertirlo a jpg)-->
+                        <img src=@string.Format("data:image/jpg;base64, {0}", Convert.ToBase64String(getImage(Convert.ToBase64String(persona_service._persona.Foto)))) width="85" height="90" />
+                        <br />
+                    }
+                    <br />
+                    <!--un boton para seleccionar una foto y llamar al metodo HandleFileSelection-->
+                    <InputFile OnChange="HandleFileSelection" />
+                </p>
+                <p>
+                    <b>Sexo: </b>
+                    <!--un input tipo radio que al darle click me llena el campo de la base de datos correspondiente con un string, 
+                        el cheked es para mantenerlo seleccionado cuando el usuario quiere editar una persona-->
+                    <label>
+                        <input type="radio"
+                               value="Mujer"
+                               name="group1"
+                               checked="@(persona_service._persona.Sexo == "Mujer")"
+                               @onclick="@(()=>persona_service._persona.Sexo = "Mujer")" />Mujer
+                    </label>
+                    <label>
+                        <input type="radio"
+                               value="Hombre"
+                               name="group1"
+                               checked="@(persona_service._persona.Sexo == "Hombre")"
+                               @onclick="@(()=>persona_service._persona.Sexo = "Hombre")" />Hombre
+                    </label>
+                </p>
+                <p>
+                    <b>Apellidos: </b>
+                    <input type="text" class="form-control" required @bind="persona_service._persona.Apellidos" />
+                </p>
+                <p>
+                    <b>Nombres: </b>
+                    <input type="text" class="form-control" required @bind="persona_service._persona.Nombres" />
+                </p>
+                <p>
+                    <b>Fecha de nacimiento: </b>
+                    <input type="date" class="form-control" required @bind="persona_service._persona.Fecha_Nacimiento" />
+                </p>
+                <p>
+                    <b>País de nacimiento: </b>
+                    <select class="form-control" required @bind="@persona_service._persona.Pais_Nacimiento">
+                        <option value="">--Seleccionar--</option>
+                        @if (persona_service._countries != null)
+                        {
+                            <!--un foreach para llenar el dropdown list-->
+                            @foreach (var country in persona_service._countries)
+                            {
+                                <option value="@country.name" selected="@(persona_service._persona.Pais_Nacimiento == country.name)">@country.name</option>
+                            }
+                        }
+
+                    </select>
+                </p>
+                <p>
+                    <b>Ciudad de nacimiento: </b>
+                    <input type="text" class="form-control" required @bind="persona_service._persona.Ciudad_Nacimiento" />
+                </p>
+                <p>
+                    <b>País de residencia actual: </b>
+                    <select class="form-control" required @bind="@persona_service._persona.Pais_Actual">
+                        <option value="">--Select--</option>
+                        @if (persona_service._countries != null)
+                        {
+                            <!--un foreach para llenar el dropdown list-->
+                            @foreach (var country in persona_service._countries)
+                            {
+                                <option value="@country.name" selected="@(persona_service._persona.Pais_Actual == country.name)">@country.name</option>
+                            }
+                        }
+                    </select>
+                </p>
+                <p>
+                    <b>Ciudad de residencia actual: </b>
+                    <input type="text" class="form-control" required @bind="persona_service._persona.Ciudad_Actual" />
+                </p>
+                <p>
+                    <b>Dirección (Provincia / sector / calle / No. de vivienda): </b>
+                    <textarea class="form-control" required @bind="persona_service._persona.Direccion"></textarea>
+                </p>
+                <p>
+                    <b>Teléfono: </b>
+                    <input type="number" class="form-control" required @bind="persona_service._persona.Telefono" />
+                </p>
+                <p>
+                    <b>Celular: </b>
+                    <input type="number" class="form-control" required @bind="persona_service._persona.Celular" />
+                </p>
+                <p>
+                    <b>Correo elctrónico: </b>
+                    <input type="email" class="form-control" required @bind="persona_service._persona.Correo_Electronico" />
+                </p>
+                <p>
+                    <b>Tipo de Documento de identidad: </b>
+                    <!--un input tipo radio que al darle click me llena el campo de la base de datos correspondiente con un string, 
+                        el cheked es para mantenerlo seleccionado cuando el usuario quiere editar una persona-->
+                    <input type="radio"
+                           value="cédula"
+                           name="group2"
+                           checked="@(persona_service._persona.Documento_Identidad == "Cédula")"
+                           @onclick="@(()=>persona_service._persona.Documento_Identidad = "Cédula")" /> Cédula
+                    <input type="radio"
+                           value="pasaporte"
+                           name="group2"
+                           checked="@(persona_service._persona.Documento_Identidad == "Pasaporte")"
+                           @onclick="@(()=>persona_service._persona.Documento_Identidad = "Pasaporte")" /> Pasaporte
+                    <input type="radio"
+                           value="dni"
+                           name="group2"
+                           checked="@(persona_service._persona.Documento_Identidad == "DNI")"
+                           @onclick="@(()=>persona_service._persona.Documento_Identidad = "DNI")" /> DNI
+                </p>
+                <p>
+                    <b>Documento de identidad: </b>
+                    <input type="number" class="form-control" required @bind="persona_service._persona.Numero_Identidad" />
+                </p>
+            </div>
+
+            <!---------------------Datos Familiares--------------------------->
+            <div>
+                <br />
+                <center><b class="h3"><u>DATOS FAMILIARES</u></b></center>
+                <p>
+                    <b>Estado civil: </b>
+                    <!--un input tipo radio que al darle click me llena el campo de la base de datos correspondiente con un string, 
+                        el cheked es para mantenerlo seleccionado cuando el usuario quiere editar una persona-->
+                    <input type="radio"
+                           value="soltero"
+                           name="group3"
+                           checked="@(persona_service._datosCiviles.Estado_Civil == "Soltero")"
+                           @onclick="@(()=>persona_service._datosCiviles.Estado_Civil = "Soltero")" /> Soltero
+                    <input type="radio"
+                           value="casado"
+                           name="group3"
+                           checked="@(persona_service._datosCiviles.Estado_Civil == "Casado")"
+                           @onclick="@(()=>persona_service._datosCiviles.Estado_Civil = "Casado")" /> Casado
+                </p>
+
+                <!--presentar dependiendo los datos de persona_service.datosCiviles.Estado_Civil-->
+                @if (persona_service._datosCiviles.Estado_Civil == "Casado")
+                {
+                    <p>
+                        <b>Nombre esposo(a)</b>
+                        <input type="text" class="form-control" required @bind="persona_service._datosCiviles.Nombre_Pareja" />
+                    </p>
+                }
+                <p>
+                    <b>Hijos: </b>
+                    <!--un input tipo radio que al darle click me llena el campo de la base de datos correspondiente con un string, 
+                        el cheked es para mantenerlo seleccionado cuando el usuario quiere editar una persona-->
+                    <input type="radio"
+                           value="si"
+                           name="group4"
+                           checked="@(persona_service._datosCiviles.Tienes_Hijos == "Si")"
+                           @onclick="@(()=>persona_service._datosCiviles.Tienes_Hijos = "Si")" /> Si
+                    <input type="radio"
+                           value="no"
+                           name="group4"
+                           checked="@(persona_service._datosCiviles.Tienes_Hijos == "No")"
+                           @onclick="@(()=>persona_service._datosCiviles.Tienes_Hijos = "No")" /> No
+                </p>
+                <!--presentar dependiendo los datos de persona_service.datosCiviles.Tienes_Hijos-->
+                @if (persona_service._datosCiviles.Tienes_Hijos == "Si")
+                {
+                    <p>
+                        <b>Cantidad de Hijos: </b>
+                        <input type="number" min="1" class="form-control" required @bind="persona_service._datosCiviles.Cantidad_Hijos" />
+                    </p>
+                }
+            </div>
+
+            <!---------------------Datos Laborales--------------------------->
+            <div>
+                <br />
+                <center><b class="h3"><u>DATOS LABORALES</u></b></center>
+                <p>
+                    <b>Profesión: </b>
+                    <input type="text" class="form-control" @bind="persona_service._datosCiviles.Profesion" />
+                </p>
+                <p>
+                    <b>Nombre de la empresa o negocio: </b>
+                    <input type="text" class="form-control" @bind="persona_service._datosCiviles.Nombre_Empresa" />
+                </p>
+                <p>
+                    <b>Ocupación actual: </b>
+                    <input type="text" class="form-control" @bind="persona_service._datosCiviles.Ocupacion_Actual" />
+                </p>
+                <p>
+                    <b>Teléfono: </b>
+                    <input type="number" class="form-control" @bind="persona_service._datosCiviles.Telefono_Trabajo" />
+                </p>
+            </div>
+
+            <!---------------------Datos Academicos--------------------------->
+            <div>
+                <br />
+                <center><b class="h3"><u>DATOS ACADÉMICOS</u></b></center>
+                <p>
+                    <b>Nivel de estudio: </b>
+                    <select class="form-control" required @bind="persona_service._datosCiviles.Nivel_Estudio">
+                        <option value="">--Seleccionar--</option>
+                        <option value="Primaria" selected="@(persona_service._datosCiviles.Nivel_Estudio == "Primaria")">Primaria</option>
+                        <option value="Secundaria" selected="@(persona_service._datosCiviles.Nivel_Estudio == "Secundaria")">Secundaria</option>
+                        <option value="Tecnico" selected="@(persona_service._datosCiviles.Nivel_Estudio == "Tecnico")">Tecnico</option>
+                        <option value="Grado" selected="@(persona_service._datosCiviles.Nivel_Estudio == "Grado")">Grado</option>
+                        <option value="Postgrado - Maestria" selected="@(persona_service._datosCiviles.Nivel_Estudio == "Postgrado - Maestria")">Postgrado - Maestria</option>
+                        <option value="Doctorado" selected="@(persona_service._datosCiviles.Nivel_Estudio == "Doctorado")">Doctorado</option>
+                    </select>
+                </p>
+                <p>
+                    <b>¿Alguna vez ha sido expulsado o suspendido de alguna institución? </b>
+                    <br />
+                    <!--un input tipo radio que al darle click me llena el campo de la base de datos correspondiente con un string, 
+                        el cheked es para mantenerlo seleccionado cuando el usuario quiere editar una persona-->
+                    <input type="radio"
+                           value="si"
+                           name="group5"
+                           checked="@(persona_service._datosCiviles.Suspension_institucion == "Si")"
+                           @onclick="@(()=>persona_service._datosCiviles.Suspension_institucion = "Si")" /> Si
+                    <input type="radio"
+                           value="no"
+                           name="group5"
+                           checked="@(persona_service._datosCiviles.Suspension_institucion == "No")"
+                           @onclick="@(()=>persona_service._datosCiviles.Suspension_institucion = "No")" /> No
+                </p>
+                <!--presentar dependiendo los datos de persona_Service.datosCiviles.Suspension_institucion-->
+                @if (persona_service._datosCiviles.Suspension_institucion == "Si")
+                {
+                    <p>
+                        <b>¿Por qué razón? </b>
+                        <textarea class="form-control" @bind="persona_service._datosCiviles.Razon_Suspension"></textarea>
+                    </p>
+                }
+            </div>
+
+            <!---------------------Datos Eclesiasticos--------------------------->
+            <div>
+                <br />
+                <center><b class="h3"><u>DATOS ECLESIASTICOS</u></b></center>
+                <p>
+                    <b>Fecha de conversión:</b>
+                    <input type="date" class="form-control" required @bind="persona_service._datosEclesiasticos.Fecha_Conversion" />
+                </p>
+                <p>
+                    <b>Fecha de bautismo:</b>
+                    <input type="date" class="form-control" required @bind="persona_service._datosEclesiasticos.Fecha_Bautismo" />
+                </p>
+                <p>
+                    <b>Fecha en que fue aceptado(a) formalmente como miembro de la Iglesia:</b>
+                    <input type="date" class="form-control" required @bind="persona_service._datosEclesiasticos.Fecha_Aceptado" />
+                </p>
+                <p>
+                    <b>Denominación a la que pertenece: </b>
+                    <br />
+                    <!--un input tipo radio que al darle click me llena el campo de la base de datos correspondiente con un string, 
+                        el cheked es para mantenerlo seleccionado cuando el usuario quiere editar una persona-->
+                    <input type="radio"
+                           value="bautista"
+                           name="group6"
+                           checked="@(persona_service._datosEclesiasticos.Denominacion == "Bautista")"
+                           @onclick="@(()=>persona_service._datosEclesiasticos.Denominacion = "Bautista")" /> Bautista
+                    <br />
+                    <input type="radio"
+                           value="pentecostal"
+                           name="group6"
+                           checked="@(persona_service._datosEclesiasticos.Denominacion == "Pentecostal")"
+                           @onclick="@(()=>persona_service._datosEclesiasticos.Denominacion = "Pentecostal")" /> Pentecostal
+                    <br />
+                    <input type="radio"
+                           value="metodista"
+                           name="group6"
+                           checked="@(persona_service._datosEclesiasticos.Denominacion == "Metodista")"
+                           @onclick="@(()=>persona_service._datosEclesiasticos.Denominacion = "Metodista")" /> Metodista
+                    <br />
+                    <input type="radio"
+                           value="catolica"
+                           name="group6"
+                           checked="@(persona_service._datosEclesiasticos.Denominacion == "Católica")"
+                           @onclick="@(()=>persona_service._datosEclesiasticos.Denominacion = "Católica")" /> Católica
+                    <br />
+                    <input type="radio"
+                           value="presbiteriana"
+                           name="group6"
+                           checked="@(persona_service._datosEclesiasticos.Denominacion == "Presbiteriana")"
+                           @onclick="@(()=>persona_service._datosEclesiasticos.Denominacion = "Presbiteriana")" /> Presbiteriana
+                    <br />
+                    <input type="radio"
+                           value="adventista"
+                           name="group6"
+                           checked="@(persona_service._datosEclesiasticos.Denominacion == "Adventista")"
+                           @onclick="@(()=>persona_service._datosEclesiasticos.Denominacion = "Adventista")" /> Adventista
+                    <br />
+                    <input type="radio"
+                           value="templo biblico"
+                           name="group6"
+                           checked="@(persona_service._datosEclesiasticos.Denominacion == "Templo Bíblico")"
+                           @onclick="@(()=>persona_service._datosEclesiasticos.Denominacion = "Templo Bíblico")" /> Templo Bíblico
+                    <br />
+                    <input type="radio"
+                           value="menonita"
+                           name="group6"
+                           checked="@(persona_service._datosEclesiasticos.Denominacion == "Menonita")"
+                           @onclick="@(()=>persona_service._datosEclesiasticos.Denominacion = "Menonita")" /> Menonita
+                    <br />
+                    <input type="radio"
+                           value="luterana"
+                           name="group6"
+                           checked="@(persona_service._datosEclesiasticos.Denominacion == "Luterana")"
+                           @onclick="@(()=>persona_service._datosEclesiasticos.Denominacion = "Luterana")" /> Luterana
+                    <br />
+                    <input type="radio"
+                           value="otra"
+                           name="group6"
+                           @onclick="@(()=>persona_service._datosEclesiasticos.Denominacion = "Otra")" /> Otra:
+
+                    <!--si seleccionó "Otra" presenta un input para escribir cual reemplaza la palabra "Otra"-->
+                    @if (persona_service._datosEclesiasticos.Denominacion == "Otra")
+                    {
+                        <input type="text" class="form-control" required @bind="persona_service._datosEclesiasticos.Denominacion" />
+                    }
+                </p>
+                <p>
+                    <b>Nombre de la Iglesia a la que asiste actualmente</b>
+                    <input type="text" class="form-control" required @bind="persona_service._datosEclesiasticos.Iglesia_Actual" />
+                </p>
+                <p>
+                    <b>Si asiste a esta iglesia por un tiempo menor a un año, ¿dónde se congregaba antes?</b>
+                    <input type="text" class="form-control" required @bind="persona_service._datosEclesiasticos.Iglesia_Antes" />
+                </p>
+                <p>
+                    <b>Nombre del pastor de su iglesia actual</b>
+                    <input type="text" class="form-control" @bind="persona_service._datosEclesiasticos.Nombre_Pastor" />
+                </p>
+                <p>
+                    <b>¿Ha sido disciplinado alguna vez? </b>
+                    <!--un input tipo radio que al darle click me llena el campo de la base de datos correspondiente con un string, 
+                        el cheked es para mantenerlo seleccionado cuando el usuario quiere editar una persona-->
+                    <input type="radio"
+                           value="no"
+                           name="group7"
+                           checked="@(persona_service._datosEclesiasticos.Ha_Disiciplinado == "No")"
+                           @onclick="@(()=>persona_service._datosEclesiasticos.Ha_Disiciplinado = "No")" /> No
+                    <input type="radio"
+                           value="si"
+                           name="group7"
+                           checked="@(persona_service._datosEclesiasticos.Ha_Disiciplinado == "Si")"
+                           @onclick="@(()=>persona_service._datosEclesiasticos.Ha_Disiciplinado = "Si")" /> Si
+                </p>
+                @if (persona_service._datosEclesiasticos.Ha_Disiciplinado == "Si")
+                {
+                    <p>
+                        <b>¿cuántas	veces?</b>
+                        <input type="number" min="1" class="form-control" required @bind="persona_service._datosEclesiasticos.Cantidad_Disciplinado" />
+                    </p>
+                    <p>
+                        <b>Causas:</b>
+                        <input type="text" class="form-control" required @bind="persona_service._datosEclesiasticos.Causas_Disciplinado" />
+                    </p>
+                }
+                <p>
+                    <b>En la actualidad ocupa usted alguna de estas funciones: <label class="text-danger">*Sólo Pastor y Anciano pueden hacer cambios a los datos*</label></b>
+                    <!--son varios input tipo checkbox, cual me llama al metodo "CheckChange" mandandole un string, 
+                        el checked es para mantener seleccionado cuando el usuario quiere editar una persona-->
+                    <br />
+                    <input type="checkbox" @onchange="@(() => CheckChange("Pastor"))" checked=@Pastor_check /> Pastor
+                    <br />
+                    <input type="checkbox" @onchange="@(() => CheckChange("Anciano"))" checked=@Anciano_check /> Anciano
+                    <br />
+                    <input type="checkbox" @onchange="@(() => CheckChange("Diacono"))" checked=@Diacono_check /> Diacono
+                    <br />
+                    <input type="checkbox" @onchange="@(() => CheckChange("Misionero"))" checked=@Misionero_check /> Misionero
+                    <br />
+                    <input type="checkbox" @onchange="@(() => CheckChange("Lider Escuela Dominical"))" checked=@Escuela_Dominical_check /> Lider Escuela Dominical
+                    <br />
+                    <input type="checkbox" @onchange="@(() => CheckChange("Lider Minist. de Jóvenes"))" checked=@Jovenes_check /> Lider Minist. de Jóvenes
+                    <br />
+                    <input type="checkbox" @onchange="@(() => CheckChange("Lider Minist. de Caballeros"))" checked=@Caballeros_check /> Lider Minist. de Caballeros
+                    <br />
+                    <input type="checkbox" @onchange="@(() => CheckChange("Lider Minist. de Damas"))" checked=@Damas_check /> Lider Minist. de Damas
+                    <br />
+                    <input type="checkbox" @onchange="@(() => CheckChange("Lider Minist. de Níños"))" checked=@Ninnos_check /> Lider Minist. de Níños
+                    <br />
+                    <input type="checkbox" @onchange="@(() => CheckChange("Lider Minist. de Matrimonios"))" checked=@Matrimonios_check /> Lider Minist. de Matrimonios
+                    <br />
+                    <input type="checkbox" @onchange="@(() => CheckChange("Lider de grupo pequeño (Célula)"))" checked=@Grupo_check /> Lider de grupo pequeño (Célula)
+                </p>
+                <p>
+                    <b>¿Cuáles son los ministerios en los que ha servido? (Ministerio 1, Ministerio 2, Ministerio 3, etc...)</b>
+                    <input type="text" class="form-control" @bind="persona_service._datosEclesiasticos.Ministerios_Servido" />
+                </p>
+                <p>
+                    <b>¿En cuál de estos ministerios considera que tuvo mayor fruto?</b>
+                    <input type="text" class="form-control" @bind="persona_service._datosEclesiasticos.Ministerio_Fruto" />
+                </p>
+                <p>
+                    <b>¿Por	qué?</b>
+                    <textarea class="form-control" @bind="persona_service._datosEclesiasticos.Razon_Fruto"></textarea>
+                </p>
+                <p>
+                    <b>Considerando sus dones y talentos, ¿a qué ministerio cree usted que Dios lo(a) está llamando?</b>
+                    <input type="text" class="form-control" @bind="persona_service._datosEclesiasticos.Ministerio_Llamando" />
+                </p>
+                <p>
+                    <b>¿Qué metas tiene para su vida?</b>
+                    <input type="text" class="form-control" @bind="persona_service._datosEclesiasticos.Meta" />
+                </p>
+                <p>
+                    <b>¿Cuenta con el respaldo de sus autoridades eclesiásticas para realizar estos estudios?</b>
+                    <br />
+                    <!--un input tipo radio que al darle click me llena el campo de la base de datos correspondiente con un string, 
+                        el cheked es para mantenerlo seleccionado cuando el usuario quiere editar una persona-->
+                    <input type="radio"
+                           value="si"
+                           name="group8"
+                           checked="@(persona_service._datosEclesiasticos.Estas_Consciente == "Si")"
+                           @onclick="@(()=>persona_service._datosEclesiasticos.Estas_Consciente = "Si")" /> Si
+                    <input type="radio"
+                           value="no"
+                           name="group8"
+                           checked="@(persona_service._datosEclesiasticos.Estas_Consciente == "No")"
+                           @onclick="@(()=>persona_service._datosEclesiasticos.Estas_Consciente = "No")" /> No
+                </p>
+            </div>
+
+            <!---------------------Datos de Usuario--------------------------->
+            <div>
+                <br />
+                <center><b class="h3"><u>DATOS DE USUARIO</u></b></center>
+
+                <!--presentar dependiendo el persona_service.update (cual cambia a true al darle a editar en la pagina listar)-->
+                @if (persona_service.update)
+                {
+                    <p>
+                        <b>Nombre de Usuario</b>
+                        <input type="text" class="form-control" @bind="persona_service._usuario.Nombre_Usuario" disabled />
+                    </p>
+                    <!--presentar dependiendo el booleano changepassword (cual cambia a true al darle a Cambiar Contraseña)-->
+                    @if (changepassword)
+                    {
+                        <p>
+                            <b>Contraseña Actual</b>
+                            <input type="password" class="form-control" @bind="password_Now" />
+                        </p>
+                        <p>
+                            <b>Contraseña</b>
+                            <input type="password" class="form-control" @bind="password_New" />
+                        </p>
+                        <p>
+                            <b>Confirmar Contraseña</b>
+                            <input type="password" class="form-control" @bind="confirmpassword" />
+                        </p>
+                    }
+                    else if (!changepassword)
+                    {
+                        <p><center><input type="button" class="btn btn-info" value="Cambiar Contraseña" @onclick="CambiarClave" /></center></p>
+                    }
+
+                }
+                else if (!persona_service.update)
+                {
+                    <p>
+                        <b>Nombre de Usuario</b>
+                        <input type="text" class="form-control" required @bind="persona_service._usuario.Nombre_Usuario" />
+                    </p>
+                    <p>
+                        <b>Contraseña</b>
+                        <input type="password" class="form-control" required @bind="persona_service._usuario.Clave" />
+                    </p>
+                    <p>
+                        <b>Confirmar Contraseña</b>
+                        <input type="password" class="form-control" required @bind="confirmpassword" />
+                    </p>
+                }
+            </div>
+
+            <p>
+                <center><b>@message</b></center>
+            </p>
+            <!--presentar dependiendo el persona_service.update (cual cambia a true al darle a editar en la pagina listar)-->
+            @if (persona_service.update)
+            {
+                <input type="submit" class="btn btn-success form-control" value="Actualizar" />
+            }
+            else if (!persona_service.update)
+            {
+                <input type="submit" class="btn btn-primary form-control" value="Agregar" />
+            }
+            <p>
+
+            </p>
+        </form>
+    }
+    else
+    {
+        <h3>Debes ser pastor o anciano para poder acceder</h3>
+    }
+}
+else
+{
+    <h3>No estas autorizado</h3>
+}
+
+
+
+@code {
+    IFileListEntry file;
+
+    // son checks para mantener las ocupaciones que pertenece a la seleccionado al editar una persona
+    private bool Pastor_check, Anciano_check, Diacono_check, Misionero_check, Escuela_Dominical_check,
+                 Jovenes_check, Caballeros_check, Damas_check, Ninnos_check, Matrimonios_check, Grupo_check,
+                 changepassword = false;
+    private string message, confirmpassword, password_Now, password_New;
+    private Ocupacion _ocupacion = new Ocupacion();
+
+    // ejecutar primero al entrar a la pagina.
+    protected override async Task OnInitializedAsync()
+    {
+        // ejecutar dependiendo persona_service.update cual cambia a true al darle editar en la pagina listar.
+        if (persona_service.update)
+        {
+            if (persona_service._persona._Ocupaciones != null)
+            {
+                // un foreach para saber cuales son las ocupaciones de la persona para mantenerlo seleccionado.
+                foreach (var i in persona_service._persona._Ocupaciones)
+                {
+                    if (i.Nombre == "Pastor")
+                    {
+                        Pastor_check = true;
+                    }
+                    else if (i.Nombre == "Anciano")
+                    {
+                        Anciano_check = true;
+                    }
+                    else if (i.Nombre == "Diacono")
+                    {
+                        Diacono_check = true;
+                    }
+                    else if (i.Nombre == "Misionero")
+                    {
+                        Misionero_check = true;
+                    }
+                    else if (i.Nombre == "Lider Escuela Dominical")
+                    {
+                        Escuela_Dominical_check = true;
+                    }
+                    else if (i.Nombre == "Lider Minist. de Jóvenes")
+                    {
+                        Jovenes_check = true;
+                    }
+                    else if (i.Nombre == "Lider Minist. de Caballeros")
+                    {
+                        Caballeros_check = true;
+                    }
+                    else if (i.Nombre == "Lider Minist. de Damas")
+                    {
+                        Damas_check = true;
+                    }
+                    else if (i.Nombre == "Lider Minist. de Níños")
+                    {
+                        Ninnos_check = true;
+                    }
+                    else if (i.Nombre == "Lider Minist. de Matrimonios")
+                    {
+                        Matrimonios_check = true;
+                    }
+                    else if (i.Nombre == "Lider de grupo pequeño (Célula)")
+                    {
+                        Grupo_check = true;
+                    }
+                }
+            }
+        }
+        else if (!persona_service.update)
+        {
+            //limpiar todos los campos.
+            persona_service._persona = new Persona();
+            persona_service._datosCiviles = new DatosCiviles();
+            persona_service._datosEclesiasticos = new DatosEclesiasticos();
+            persona_service._usuario = new Usuario();
+        }
+        // consumir la api para llenar la lista persona_service.countries cual me sirve para llenar el dropdown list de los paises.
+        persona_service._countries = await Http.GetJsonAsync<List<Country>>("https://restcountries.eu/rest/v2/all");
+
+    }
+
+    // metodo que recibe un array tipo IFileListEntry para poder guardarlo en la base de datos en tipo byte[] 
+    private async Task HandleFileSelection(IFileListEntry[] files)
+    {
+        if (files.Count() > 0)
+        {
+            file = files.FirstOrDefault();
+            using (var ms = new MemoryStream())
+            {
+                await file.Data.CopyToAsync(ms);
+                persona_service._persona.Foto = ms.ToArray();
+            }
+        }
+    }
+
+    // metodo que recibe el string, lo convierte a byte y luego lo retorna.
+    public byte[] getImage(string sBase64String)
+    {
+        byte[] bytes = null;
+        if (sBase64String != null)
+        {
+            bytes = Convert.FromBase64String(sBase64String);
+        }
+
+        return bytes;
+    }
+
+    // metodo para cambiar el changepassword de false a true.
+    private void CambiarClave()
+    {
+        changepassword = true;
+    }
+
+    // el metodo que se ejecuta al darle cualquiera de los botones del formulario (AgregarPersona o ActualizarPersona).
+    private async Task Ejecutar()
+    {
+        // ejecuta dependiendo el booleano de persona_service.update cual cambia a true al darle editar en la pagina listar.
+        if (persona_service.update)
+        {
+            // si changepassword es igual a true me valida los campos de contraseña actual para ver si el usaurio conoce la contraseña actual de la persona.
+            if (changepassword)
+            {
+                if (password_Now != persona_service._usuario.Clave)
+                {
+                    message = "Contraseña actual incorrecta";
+                }
+                else if (password_New != confirmpassword)
+                {
+                    message = "Favor de revisar la confirmacion de contraseña";
+                }
+                else
+                {
+                    // juntar todos los datos y actualizarlo en la base de datos.
+                    persona_service._persona.DatosCiviles = persona_service._datosCiviles;
+                    persona_service._persona.DatosEclesiasticos = persona_service._datosEclesiasticos;
+                    persona_service._persona.Usuarios = persona_service._usuario;
+                    message = await persona_service.UpdatePersonaAsync(persona_service._persona);
+                    confirmpassword = "";
+                    persona_service.update = false;
+                }
+            }
+            else
+            {
+                // juntar todos los datos y actualizarlo en la base de datos.
+                persona_service._persona.DatosCiviles = persona_service._datosCiviles;
+                persona_service._persona.DatosEclesiasticos = persona_service._datosEclesiasticos;
+                persona_service._persona.Usuarios = persona_service._usuario;
+                message = await persona_service.UpdatePersonaAsync(persona_service._persona);
+                persona_service.update = false;
+            }
+        }
+        else if (!persona_service.update)
+        {
+            // llenar la lista usuario_service.usuarios.
+            usuario_service._usuarios = await usuario_service.GetUsuariosAsync();
+
+            // filtrar un usuario con el nombre de persona_service.usuario.Nombre_Usuario.
+            Usuario usuarioExist = usuario_service._usuarios.FirstOrDefault(x => x.Nombre_Usuario == persona_service._usuario.Nombre_Usuario);
+            
+            // validar si el usuario seleccionó todos los grupos de input tipo radio y selects.
+            if (persona_service._datosCiviles.Tienes_Hijos == "No")
+            {
+                persona_service._datosCiviles.Cantidad_Hijos = 0;
+            }
+            if (persona_service._datosEclesiasticos.Ha_Disiciplinado == "No")
+            {
+                persona_service._datosEclesiasticos.Cantidad_Disciplinado = 0;
+            }
+            if (persona_service._persona.Sexo == null)
+            {
+                message = "Favor de seleccionar un sexo";
+            }
+            else if (persona_service._persona.Documento_Identidad == null)
+            {
+                message = "Favor de seleccionar un tipo de documento";
+            }
+            else if (persona_service._datosCiviles.Tienes_Hijos == null)
+            {
+                message = "Favor de seleccionar si tienes hijos o no";
+            }
+            else if (persona_service._datosCiviles.Suspension_institucion == null)
+            {
+                message = "Favor de seleccionar si ha sido expulsado o no";
+            }
+            else if (persona_service._datosEclesiasticos.Denominacion == null)
+            {
+                message = "Favor de seleccionar la denominacion que perteneces";
+            }
+            else if (persona_service._datosEclesiasticos.Ha_Disiciplinado == null)
+            {
+                message = "Favor de seleccionar si ha sido disciplinado o no";
+            }
+            else if (persona_service._datosEclesiasticos.Estas_Consciente == null)
+            {
+                message = "Favor de seleccionar si cuenta con el respaldo de sus autoridades eclesiásticas para realizar estos estudios";
+            }
+            else if (persona_service._persona.Pais_Actual == null)
+            {
+                message = "Favor de seleccionar el País de residencia actual";
+            }
+            else if (persona_service._persona.Pais_Nacimiento == null)
+            {
+                message = "Favor de seleccionar el País de nacimiento";
+            }
+            else if (persona_service._datosCiviles.Nivel_Estudio == null)
+            {
+                message = "Favor de seleccionar el Nivel de estudio";
+            }
+            else if (persona_service._datosEclesiasticos.Estas_Consciente == "No")
+            {
+                message = "No puedes terminar si no cuenta con el respaldo de sus autoridades eclesiásticas para realizar estos estudios";
+            }
+            else if (persona_service._usuario.Clave != confirmpassword)
+            {
+                message = "Favor de revisar la confirmacion de contraseña";
+            }
+            else if (usuarioExist != null)
+            {
+                // validar si el nombre de usuario esta en uso (si el usuarioExist no es igual a nulo significa que ya existe uno en la base de datos).
+                message = "Nombre de usuario ya esta en uso";
+            }
+            else
+            {
+                // juntar todos y agregarlo en la base de datos
+                persona_service._persona.DatosCiviles = persona_service._datosCiviles;
+                persona_service._persona.DatosEclesiasticos = persona_service._datosEclesiasticos;
+                persona_service._persona.Usuarios = persona_service._usuario;
+                message = await persona_service.AddPersonaAsync(persona_service._persona);
+                datosEclesiasticos_service._datosEclesiasticos = await datosEclesiasticos_service.GetDatosEclesiasticosAsync();
+                confirmpassword = "";
+            }
+        }
+
+    }
+
+    // un metodo que recibe un string (la ocupacion), y validar el check, si el check es true remueve la ocupacion, si es false agrega la ocupacion.
+    private void CheckChange(string ocupacion)
+    {
+        _ocupacion = new Ocupacion();
+        switch (ocupacion)
+        {
+            case "Pastor":
+                if (Pastor_check)
+                {
+                    // filtrar ocupacion con el string recibido y luego removerlo de la lista y cambiar el check a false.
+                    _ocupacion = persona_service._persona._Ocupaciones.FirstOrDefault(x => x.Nombre == ocupacion);
+                    persona_service._persona._Ocupaciones.Remove(_ocupacion);
+                    Pastor_check = false;
+                }
+                else if (!Pastor_check)
+                {
+                    // agregar la ocupacion a la lista y cambiar el check a true.
+                    _ocupacion.Nombre = ocupacion;
+                    persona_service._persona._Ocupaciones.Add(_ocupacion);
+                    Pastor_check = true;
+                }
+                break;
+            case "Anciano":
+                if (Anciano_check)
+                {
+                    _ocupacion = persona_service._persona._Ocupaciones.FirstOrDefault(x => x.Nombre == ocupacion);
+                    persona_service._persona._Ocupaciones.Remove(_ocupacion);
+                    Anciano_check = false;
+                }
+                else if (!Anciano_check)
+                {
+                    _ocupacion.Nombre = ocupacion;
+                    persona_service._persona._Ocupaciones.Add(_ocupacion);
+                    Anciano_check = true;
+                }
+                break;
+            case "Diacono":
+                if (Diacono_check)
+                {
+                    _ocupacion = persona_service._persona._Ocupaciones.FirstOrDefault(x => x.Nombre == ocupacion);
+                    persona_service._persona._Ocupaciones.Remove(_ocupacion);
+                    Diacono_check = false;
+                }
+                else if (!Diacono_check)
+                {
+                    _ocupacion.Nombre = ocupacion;
+                    persona_service._persona._Ocupaciones.Add(_ocupacion);
+                    Diacono_check = true;
+                }
+                break;
+            case "Misionero":
+                if (Misionero_check)
+                {
+                    _ocupacion = persona_service._persona._Ocupaciones.FirstOrDefault(x => x.Nombre == ocupacion);
+                    persona_service._persona._Ocupaciones.Remove(_ocupacion);
+                    Misionero_check = false;
+                }
+                else if (!Misionero_check)
+                {
+                    _ocupacion.Nombre = ocupacion;
+                    persona_service._persona._Ocupaciones.Add(_ocupacion);
+                    Misionero_check = true;
+                }
+                break;
+            case "Lider Escuela Dominical":
+                if (Escuela_Dominical_check)
+                {
+                    _ocupacion = persona_service._persona._Ocupaciones.FirstOrDefault(x => x.Nombre == ocupacion);
+                    persona_service._persona._Ocupaciones.Remove(_ocupacion);
+                    Escuela_Dominical_check = false;
+                }
+                else if (!Escuela_Dominical_check)
+                {
+                    _ocupacion.Nombre = ocupacion;
+                    persona_service._persona._Ocupaciones.Add(_ocupacion);
+                    Escuela_Dominical_check = true;
+                }
+                break;
+            case "Lider Minist. de Jóvenes":
+                if (Jovenes_check)
+                {
+                    _ocupacion = persona_service._persona._Ocupaciones.FirstOrDefault(x => x.Nombre == ocupacion);
+                    persona_service._persona._Ocupaciones.Remove(_ocupacion);
+                    Jovenes_check = false;
+                }
+                else if (!Jovenes_check)
+                {
+                    _ocupacion.Nombre = ocupacion;
+                    persona_service._persona._Ocupaciones.Add(_ocupacion);
+                    Jovenes_check = true;
+                }
+                break;
+            case "Lider Minist. de Caballeros":
+                if (Caballeros_check)
+                {
+                    _ocupacion = persona_service._persona._Ocupaciones.FirstOrDefault(x => x.Nombre == ocupacion);
+                    persona_service._persona._Ocupaciones.Remove(_ocupacion);
+                    Caballeros_check = false;
+                }
+                else if (!Caballeros_check)
+                {
+                    _ocupacion.Nombre = ocupacion;
+                    persona_service._persona._Ocupaciones.Add(_ocupacion);
+                    Caballeros_check = true;
+                }
+                break;
+            case "Lider Minist. de Damas":
+                if (Damas_check)
+                {
+                    _ocupacion = persona_service._persona._Ocupaciones.FirstOrDefault(x => x.Nombre == ocupacion);
+                    persona_service._persona._Ocupaciones.Remove(_ocupacion);
+                    Damas_check = false;
+                }
+                else if (!Damas_check)
+                {
+                    _ocupacion.Nombre = ocupacion;
+                    persona_service._persona._Ocupaciones.Add(_ocupacion);
+                    Damas_check = true;
+                }
+                break;
+            case "Lider Minist. de Níños":
+                if (Ninnos_check)
+                {
+                    _ocupacion = persona_service._persona._Ocupaciones.FirstOrDefault(x => x.Nombre == ocupacion);
+                    persona_service._persona._Ocupaciones.Remove(_ocupacion);
+                    Ninnos_check = false;
+                }
+                else if (!Ninnos_check)
+                {
+                    _ocupacion.Nombre = ocupacion;
+                    persona_service._persona._Ocupaciones.Add(_ocupacion);
+                    Ninnos_check = true;
+                }
+                break;
+            case "Lider Minist. de Matrimonios":
+                if (Matrimonios_check)
+                {
+                    _ocupacion = persona_service._persona._Ocupaciones.FirstOrDefault(x => x.Nombre == ocupacion);
+                    persona_service._persona._Ocupaciones.Remove(_ocupacion);
+                    Matrimonios_check = false;
+                }
+                else if (!Matrimonios_check)
+                {
+                    _ocupacion.Nombre = ocupacion;
+                    persona_service._persona._Ocupaciones.Add(_ocupacion);
+                    Matrimonios_check = true;
+                }
+                break;
+            case "Lider de grupo pequeño (Célula)":
+                if (Grupo_check)
+                {
+                    _ocupacion = persona_service._persona._Ocupaciones.FirstOrDefault(x => x.Nombre == ocupacion);
+                    persona_service._persona._Ocupaciones.Remove(_ocupacion);
+                    Grupo_check = false;
+                }
+                else if (!Grupo_check)
+                {
+                    _ocupacion.Nombre = ocupacion;
+                    persona_service._persona._Ocupaciones.Add(_ocupacion);
+                    Grupo_check = true;
+                }
+                break;
+        }
+    }
+}

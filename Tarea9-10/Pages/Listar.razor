@@ -1,0 +1,164 @@
+﻿@page "/listar"
+@using Tarea9_10.Data
+@using Microsoft.EntityFrameworkCore
+@inject PersonaServices persona_service
+@inject DatosCivilesServices datosCiviles_service
+@inject DatosEclesiasticosServices datosEclesiasticos_service
+@inject OcupacionServices ocupacion_service
+@inject UsuarioServices usuario_service
+@inject NavigationManager nav
+@inject IModalService modal
+
+
+<!--presentar dependiendo el booleano usuario_service.state cual se validó en el login.-->
+@if (usuario_service.state)
+{
+    <!--un buscador para recargar la tabla con el nombre escrito en el input-->
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" placeholder="Buscar persona" aria-describedby="basic-addon1" @bind="name" />
+        <div class="input-group-prepend">
+            <span class="input-group-text @Icono justify-content-center" id="basic-addon1" @onclick="buscar"></span>
+        </div>
+    </div>
+    <!--una tabla que presenta los integrantes guardado en la base de datos.-->
+    <table class="table">
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">Nombres</th>
+                <th scope="col">Apellidos</th>
+                <th scope="col">Sexo</th>
+                <th scope="col">Pais Actual</th>
+                <th scope="col">Teléfono</th>
+                <!--crear esas columnas si usuario_service.permiso es igual a true cual se validó en el login.-->
+                @if (usuario_service.permiso)
+                {
+                    <th scope="col">Ver Detalle</th>
+                    <th scope="col">Editar</th>
+                    <th scope="col">Borrar</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            <!--un foreach para correr todas las personas de la lista persona_service._personas.-->
+            @foreach (var persona in persona_service._personas)
+            {
+                <tr>
+                    <th scope="row">@persona.Nombres</th>
+                    <td>@persona.Apellidos</td>
+                    <td>@persona.Sexo</td>
+                    <td>@persona.Pais_Actual</td>
+                    <td>@persona.Telefono</td>
+                    <!--crear esas columnas si usuario_service.permiso es igual a true cual se validó en el login-->
+                    @if (usuario_service.permiso)
+                    {
+                        <td class="text-center"><span class="oi oi-zoom-in" @onclick="@(()=> showModal(persona.PersonaId))"></span></td>
+                        <td class="text-center"><span class="oi oi-pencil" @onclick="@(()=> update(persona.PersonaId))"></span></td>
+                        <td class="text-center"><span class="oi oi-trash" @onclick="@(()=> remove(persona))"></span></td>
+                    }
+                </tr>
+
+            }
+        </tbody>
+    </table>
+    <center><h3>@message</h3></center>
+}
+else
+{
+    <h3>No estas autorizado</h3>
+}
+
+
+@code {
+
+    // un string "name" para bindear el input del buscador, un string "Icono" para cambiar el icono del buscador.
+    private string name = "", Icono = "oi oi-magnifying-glass", message;
+
+    // para guardar la persona admin cual no quiero presentarlo en la lista.
+    private Persona admin = new Persona();
+
+    //llenar todas las listas cual lo necesito para filtrar los datos con el PersonaId y borrar la persona admin.
+    protected override async Task OnInitializedAsync()
+    {
+        persona_service._personas = await persona_service.GetPersonasAsync();
+        admin = persona_service._personas.FirstOrDefault(x => x.PersonaId == 5);
+        persona_service._personas.Remove(admin);
+        datosCiviles_service._datosCiviles = await datosCiviles_service.GetDatosCivilesAsync();
+        datosEclesiasticos_service._datosEclesiasticos = await datosEclesiasticos_service.GetDatosEclesiasticosAsync();
+        usuario_service._usuarios = await usuario_service.GetUsuariosAsync();
+        ocupacion_service._ocupaciones = await ocupacion_service.GetOcupacionsAsync();
+
+        if (persona_service.update)
+        {
+            persona_service.update = false;
+        }
+    }
+
+    //metodo para filtrar la lista de la tabla con el string "name".
+    private async Task buscar()
+    {
+        persona_service._personas = await persona_service.GetPersonasAsync();
+        persona_service._personas.Remove(admin);
+
+        if (name != "")
+        {
+            // llenar la lista persona_service._personas con personas que contengan los alfabetos de "name".
+            persona_service._personas = persona_service._personas.
+            Where(x => 
+                x.Nombres.ToLower().Contains(name.ToLower()) || 
+                x.Apellidos.ToLower().Contains(name.ToLower()) || 
+                x.Sexo.ToLower().Contains(name.ToLower()) ||
+                x.Pais_Actual.ToLower().Contains(name.ToLower())).ToList();
+            if (persona_service._personas.Count == 0)
+            {
+                message = "No existe el nombre en la lista";
+            }
+            else
+            {
+                message = "";
+            }
+            Icono = "oi oi-loop-circular";
+
+        }
+        else if (name == "")
+        {
+            Icono = "oi oi-magnifying-glass";
+            message = "";
+        }
+
+    }
+
+    //metodo que recibe un objeto tipo persona y lo borra de la base de datos llamando PersonaServices.
+    private async Task remove(Persona persona)
+    {
+        await persona_service.RemovePersonaAsync(persona);
+        persona_service._personas = await persona_service.GetPersonasAsync();
+        persona_service._personas.Remove(admin);
+    }
+
+
+    /*metodo que recibe un entero cual me sirve para llenar los objetos del UsuarioServices,
+    cambiar el booleano PersonaServices.update a true y llevar el usuario a la pagina agregar.*/
+    private void update(int Id)
+    {
+        persona_service._persona = persona_service._personas.FirstOrDefault(x => x.PersonaId == Id);
+        persona_service._datosCiviles = datosCiviles_service._datosCiviles.FirstOrDefault(x => x.PersonaId == Id);
+        persona_service._datosEclesiasticos = datosEclesiasticos_service._datosEclesiasticos.FirstOrDefault(x => x.PersonaId == Id);
+        persona_service._usuario = usuario_service._usuarios.FirstOrDefault(x => x.PersonaId == Id);
+        persona_service._persona._Ocupaciones = ocupacion_service._ocupaciones.Where(x => x.PersonaId == Id).ToList();
+        persona_service.update = true;
+        nav.NavigateTo("/agregar");
+    }
+
+
+    /*metodo que recibe un entero cual me sirve para llenar los objetos del UsuarioServices
+    y abrir el modal con los datos de la persona.*/
+    private void showModal(int Id)
+    {
+        persona_service._persona = persona_service._personas.FirstOrDefault(x => x.PersonaId == Id);
+        persona_service._datosCiviles = datosCiviles_service._datosCiviles.FirstOrDefault(x => x.PersonaId == Id);
+        persona_service._datosEclesiasticos = datosEclesiasticos_service._datosEclesiasticos.FirstOrDefault(x => x.PersonaId == Id);
+        persona_service._usuario = usuario_service._usuarios.FirstOrDefault(x => x.PersonaId == Id);
+        persona_service._persona._Ocupaciones = ocupacion_service._ocupaciones.Where(x => x.PersonaId == Id).ToList();
+        modal.Show<DetailModal>("Datos de " + persona_service._persona.Nombres);
+    }
+}

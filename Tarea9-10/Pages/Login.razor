@@ -1,0 +1,72 @@
+﻿@page "/login"
+@using Tarea9_10.Data
+@inject UsuarioServices usuario_service
+@inject OcupacionServices ocupacion_service
+@inject NavigationManager nav
+
+<!--Formulario para hacer el login.-->
+<div class="container">
+    <form @onsubmit="toContent">
+        <center><h2>Log In</h2></center>
+        <div class=" form-group">
+            <label>Nombre de usuario</label>
+            <input type="text" class="form-control" required @bind="_user.Nombre_Usuario" />
+        </div>
+        <div class=" form-group">
+            <label>Contraseña</label>
+            <input type="password" class="form-control" required @bind="_user.Clave" />
+        </div>
+        <div class="text-center p-3 mb-3">
+            <input type="submit" class="btn btn-primary" value="Log In" />
+            <br />
+            <h6 class="text-danger">@message</h6>
+        </div>
+    </form>
+</div>
+
+@code {
+
+    // para bindear el nombre y clave del formulario.
+    private Usuario _user = new Usuario();
+    // para guardar ocupaciones del usuario.
+    private List<Ocupacion> usuario_ocupaciones = new List<Ocupacion>();
+    // para los avisos (si ingreso los datos correctos o no).
+    private string message;
+
+    // limpiar los datos y llenar la lista ocupacion_service._ocupaciones.
+    protected override async Task OnInitializedAsync()
+    {
+        // limpiar los datos cada vez que entra a esta pagina.
+        usuario_service.state = false;
+        usuario_service.permiso = false;
+        usuario_ocupaciones = new List<Ocupacion>();
+
+        // llenar una lista de tipo ocupacion para filtrar ocupaciones que pertenece al usuario.
+        ocupacion_service._ocupaciones = await ocupacion_service.GetOcupacionsAsync();
+    }
+
+    // validar y luego llevar el usuario a la pagina inicial.
+    private void toContent()
+    {
+        // pasando el _user a UsuarioServices para validar si existe en la base de datos.
+        message = usuario_service.ValidarUsuario(_user);
+
+        //ejecutar si el estado es true.
+        if (usuario_service.state)
+        {
+            // filtrar las ocupaciones del usuario con la lista ocupacion_service._ocupaciones.PersonaId y usuario_service._usuario.PersonaId.
+            usuario_ocupaciones = ocupacion_service._ocupaciones.Where(x => x.PersonaId == usuario_service._usuario.PersonaId).ToList();
+
+            // filtrar las ocupaciones del usuario de nuevo para saber si tiene una funcionalidad como pastor o anciano.
+            usuario_ocupaciones = usuario_ocupaciones.Where(y => y.Nombre == "Pastor" || y.Nombre == "Anciano").ToList();
+            // ejecutar si la lista no esta vacio.
+            if(usuario_ocupaciones.Count > 0)
+            {
+                // cambiar el permiso(cual nos sirve si dejar al usuario utilizar ciertas funcionalidades de la pagina) a true.
+                usuario_service.permiso = true;
+            }
+            // llevar el usuario a la pagina inicial.
+            nav.NavigateTo("/");
+        }
+    }
+}

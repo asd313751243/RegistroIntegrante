@@ -1,0 +1,59 @@
+﻿@page "/cambiarclave"
+@using Tarea9_10.Data
+@inject UsuarioServices usuario_service
+
+<!--presentar dependiendo el usuario_service.state cual se validó en el login.-->
+@if (usuario_service.state)
+{
+    <p>
+        <b>Nombre de Usuario</b>
+        <input type="text" class="form-control" @bind="usuario_service._usuario.Nombre_Usuario" disabled />
+    </p>
+    <!--un formulario que llama al metodo.-->
+    <form @onsubmit="ChangePassword">
+        <p>
+            <b>Contraseña Actual</b>
+            <input type="password" class="form-control" required @bind="password_Now" />
+        </p>
+        <p>
+            <b>Contraseña</b>
+            <input type="password" class="form-control" required @bind="password_New" />
+        </p>
+        <p>
+            <b>Confirmar Contraseña</b>
+            <input type="password" class="form-control" required @bind="confirmpassword" />
+        </p>
+        <p>
+            <center><b>@message</b></center>
+        </p>
+        <p><center><input type="submit" class="btn btn-info" value="Cambiar Contraseña" /></center></p>
+    </form>
+}
+else
+{
+    <h3>No estas autorizado</h3>
+}
+
+
+@code {
+    private string password_Now, password_New, confirmpassword, message;
+
+    // para validar si inserto la contraseña actual correcta y las dos contraseñas nuevas son iguales.
+    private async Task ChangePassword()
+    {
+        if (password_Now != usuario_service._usuario.Clave)
+        {
+            message = "Contraseña actual incorrecta";
+        }
+        else if (password_New != confirmpassword)
+        {
+            message = "Favor de revisar la confirmacion de contraseña";
+        }
+        else
+        {
+            // en caso de que todo estan correcto hace un update a la tabla Usuarios de la base de dato.
+            usuario_service._usuario.Clave = password_New;
+            message = await usuario_service.UpdateUsuarioAsync(usuario_service._usuario);
+        }
+    }
+}

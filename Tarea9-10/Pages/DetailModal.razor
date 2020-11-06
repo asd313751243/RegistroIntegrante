@@ -1,0 +1,162 @@
+﻿@page "/detailmodal"
+
+@using Tarea9_10.Data
+@inject PersonaServices persona_service
+
+<!--un modal con varias cartas (bootstrap tipo card) y con un scrollbar. Los datos se llenan con los objetos de PersonaServices-->
+<div class="pre-scrollable">
+    <div class="card" style="width: 100%">
+        <div class="card-body">
+            <h4 class="card-title text-center"><b><u>DATOS PERSONALES</u></b></h4>
+            <p>
+                @if (persona_service._persona.Foto != null)
+                {
+                    <br />
+                    <!--Cambia el formato byte a jpg (primero llama al metodo getImage, retorna un byte, 
+                        convierte el byte a string(pero aun no se puede convertir a jpg), convertir a string de nevo y luego convertirlo a jpg)-->
+                    <img src=@string.Format("data:image/jpg;base64, {0}", Convert.ToBase64String(getImage(Convert.ToBase64String(persona_service._persona.Foto)))) class="rounded float-right" width="125" height="130" />
+                    <br />
+                }
+                <br />
+            </p>
+            <br />
+            <h5 class="card-subtitle mb-2 text-muted">Sexo:</h5>
+            <p class="card-text">@persona_service._persona.Sexo</p>
+            <h5 class="card-subtitle mb-2 text-muted">Apellidos:</h5>
+            <p class="card-text">@persona_service._persona.Apellidos</p>
+            <h5 class="card-subtitle mb-2 text-muted">Nombres:</h5>
+            <p class="card-text">@persona_service._persona.Nombres</p>
+            <h5 class="card-subtitle mb-2 text-muted">Fecha de Nacimiento:</h5>
+            <p class="card-text">@persona_service._persona.Fecha_Nacimiento</p>
+            <h5 class="card-subtitle mb-2 text-muted">País de nacimiento:</h5>
+            <p class="card-text">@persona_service._persona.Pais_Nacimiento</p>
+            <h5 class="card-subtitle mb-2 text-muted">Ciudad de nacimiento:</h5>
+            <p class="card-text">@persona_service._persona.Ciudad_Nacimiento</p>
+            <h5 class="card-subtitle mb-2 text-muted">País de residencia actual:</h5>
+            <p class="card-text">@persona_service._persona.Pais_Actual</p>
+            <h5 class="card-subtitle mb-2 text-muted">Ciudad de residencia actual:</h5>
+            <p class="card-text">@persona_service._persona.Ciudad_Actual</p>
+            <h5 class="card-subtitle mb-2 text-muted">Dirección (Provincia / sector / calle / No. de vivienda)</h5>
+            <p class="card-text">@persona_service._persona.Direccion</p>
+            <h5 class="card-subtitle mb-2 text-muted">Teléfono:</h5>
+            <p class="card-text">@persona_service._persona.Telefono</p>
+            <h5 class="card-subtitle mb-2 text-muted">Celular:</h5>
+            <p class="card-text">@persona_service._persona.Celular</p>
+            <h5 class="card-subtitle mb-2 text-muted">Correo elctrónico:</h5>
+            <p class="card-text">@persona_service._persona.Correo_Electronico</p>
+            <h5 class="card-subtitle mb-2 text-muted">Tipo de Documento de identidad:</h5>
+            <p class="card-text">@persona_service._persona.Documento_Identidad</p>
+            <h5 class="card-subtitle mb-2 text-muted">Documento de identidad:</h5>
+            <p class="card-text">@persona_service._persona.Numero_Identidad</p>
+        </div>
+    </div>
+
+    <br />
+
+    <div class="card" style="width: 100%">
+        <div class="card-body">
+            <h4 class="card-title text-center"><b><u>DATOS FAMILIARES</u></b></h4>
+            <h5 class="card-subtitle mb-2 text-muted">Estado civil:</h5>
+            <p class="card-text">@persona_service._datosCiviles.Estado_Civil</p>
+            <h5 class="card-subtitle mb-2 text-muted">Nombre esposo(a):</h5>
+            <p class="card-text">@persona_service._datosCiviles.Nombre_Pareja</p>
+            <h5 class="card-subtitle mb-2 text-muted">Hijos:</h5>
+            <p class="card-text">@persona_service._datosCiviles.Tienes_Hijos</p>
+            <h5 class="card-subtitle mb-2 text-muted">No. Hijos:</h5>
+            <p class="card-text">@persona_service._datosCiviles.Cantidad_Hijos</p>
+        </div>
+    </div>
+
+    <br />
+
+    <div class="card" style="width: 100%">
+        <div class="card-body">
+            <h4 class="card-title text-center"><b><u>DATOS LABORALES</u></b></h4>
+            <h5 class="card-subtitle mb-2 text-muted">Profesión:</h5>
+            <p class="card-text">@persona_service._datosCiviles.Profesion</p>
+            <h5 class="card-subtitle mb-2 text-muted">Nombre de la empresa o negocio:</h5>
+            <p class="card-text">@persona_service._datosCiviles.Nombre_Empresa</p>
+            <h5 class="card-subtitle mb-2 text-muted">Ocupación actual:</h5>
+            <p class="card-text">@persona_service._datosCiviles.Ocupacion_Actual</p>
+            <h5 class="card-subtitle mb-2 text-muted">Teléfono:</h5>
+            <p class="card-text">@persona_service._datosCiviles.Telefono_Trabajo</p>
+        </div>
+    </div>
+
+    <br />
+
+    <div class="card" style="width: 100%">
+        <div class="card-body">
+            <h4 class="card-title text-center"><b><u>DATOS ECLESIASTICOS</u></b></h4>
+            <h5 class="card-subtitle mb-2 text-muted">Fecha de conversión:</h5>
+            <p class="card-text">@persona_service._datosEclesiasticos.Fecha_Conversion</p>
+            <h5 class="card-subtitle mb-2 text-muted">Fecha de bautismo:</h5>
+            <p class="card-text">@persona_service._datosEclesiasticos.Fecha_Bautismo</p>
+            <h5 class="card-subtitle mb-2 text-muted">Fecha en que fue aceptado(a) formalmente como miembro de la Iglesia:</h5>
+            <p class="card-text">@persona_service._datosEclesiasticos.Fecha_Aceptado</p>
+            <h5 class="card-subtitle mb-2 text-muted">Denominación a la que pertenece:</h5>
+            <p class="card-text">@persona_service._datosEclesiasticos.Denominacion</p>
+            <h5 class="card-subtitle mb-2 text-muted">Nombre de la Iglesia a la que asiste actualmente</h5>
+            <p class="card-text">@persona_service._datosEclesiasticos.Iglesia_Actual</p>
+            <h5 class="card-subtitle mb-2 text-muted">Si asiste a esta iglesia por un tiempo menor a un año, ¿dónde se congregaba antes?</h5>
+            <p class="card-text">@persona_service._datosEclesiasticos.Iglesia_Antes</p>
+            <h5 class="card-subtitle mb-2 text-muted">Nombre del pastor de su iglesia actual</h5>
+            <p class="card-text">@persona_service._datosEclesiasticos.Nombre_Pastor</p>
+            <h5 class="card-subtitle mb-2 text-muted">¿Ha sido disciplinado alguna vez?</h5>
+            <p class="card-text">@persona_service._datosEclesiasticos.Ha_Disiciplinado</p>
+            <h5 class="card-subtitle mb-2 text-muted">¿cuántas veces?</h5>
+            <p class="card-text">@persona_service._datosEclesiasticos.Cantidad_Disciplinado</p>
+            <h5 class="card-subtitle mb-2 text-muted">Causas:</h5>
+            <p class="card-text">@persona_service._datosEclesiasticos.Causas_Disciplinado</p>
+            <h5 class="card-subtitle mb-2 text-muted">Funciones ocupado en la actualidad:</h5>
+            <p>
+                <!--un foreach para presentar todas las ocupaciones de la persona-->
+                @foreach (var i in persona_service._persona._Ocupaciones)
+                {
+                    <li class="card-text">@i.Nombre</li>
+                }
+            </p>
+            <h5 class="card-subtitle mb-2 text-muted">¿Cuáles son los ministerios en los que ha servido?</h5>
+            <p class="card-text">@persona_service._datosEclesiasticos.Ministerios_Servido</p>
+            <h5 class="card-subtitle mb-2 text-muted">¿En cuál de estos ministerios considera que tuvo mayor fruto?</h5>
+            <p class="card-text">@persona_service._datosEclesiasticos.Ministerio_Fruto</p>
+            <h5 class="card-subtitle mb-2 text-muted">¿Por qué?</h5>
+            <p class="card-text">@persona_service._datosEclesiasticos.Razon_Fruto</p>
+            <h5 class="card-subtitle mb-2 text-muted">Considerando sus dones y talentos, ¿a qué ministerio cree usted que Dios lo(a) está llamando?</h5>
+            <p class="card-text">@persona_service._datosEclesiasticos.Ministerio_Llamando</p>
+            <h5 class="card-subtitle mb-2 text-muted">¿Qué metas tiene para su vida?</h5>
+            <p class="card-text">@persona_service._datosEclesiasticos.Meta</p>
+            <h5 class="card-subtitle mb-2 text-muted">¿Cuenta con el respaldo de sus autoridades eclesiásticas para realizar estos estudios?</h5>
+            <p class="card-text">@persona_service._datosEclesiasticos.Estas_Consciente</p>
+        </div>
+    </div>
+
+    <br />
+
+    <div class="card" style="width: 100%">
+        <div class="card-body">
+            <h4 class="card-title text-center"><b><u>DATOS	ACADÉMICOS</u></b></h4>
+            <h5 class="card-subtitle mb-2 text-muted">Nivel de estudio:</h5>
+            <p class="card-text">@persona_service._datosCiviles.Nivel_Estudio</p>
+            <h5 class="card-subtitle mb-2 text-muted">¿Alguna vez ha sido expulsado o suspendido de alguna institución?</h5>
+            <p class="card-text">@persona_service._datosCiviles.Suspension_institucion</p>
+            <h5 class="card-subtitle mb-2 text-muted">En caso afirmativo, ¿por qué razón?</h5>
+            <p class="card-text">@persona_service._datosCiviles.Razon_Suspension</p>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    // el metodo que recibe el string, lo convierte a byte y luego lo retorna.
+    public byte[] getImage(string sBase64String)
+    {
+        byte[] bytes = null;
+        if (sBase64String != null)
+        {
+            bytes = Convert.FromBase64String(sBase64String);
+        }
+
+        return bytes;
+    }
+}
